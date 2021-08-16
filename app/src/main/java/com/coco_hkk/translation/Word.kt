@@ -12,45 +12,9 @@ package com.coco_hkk.translation
  * @param   cnTranslation   中文
  */
 
-class Word(
-    enTranslation: String,
-    cnTranslation: String,
-    soundId: Int
-) {
-    private val NO_IMAGE_PROVIDED = -1
-    private var mEnTranslation: String = enTranslation
-    private var mCnTranslation: String = cnTranslation
-    private var mImageId: Int = NO_IMAGE_PROVIDED
-    private var mSoundId: Int = soundId
-
-    // 次构造函数，接受图片
-    constructor(
-        enTranslation: String,
-        cnTranslation: String,
-        imageId: Int,
-        soundId: Int
-    ) : this(enTranslation, cnTranslation, soundId) {
-        mImageId = imageId
-    }
-
-    fun getEnTranslation(): String {
-        return mEnTranslation
-    }
-
-    fun getCnTranslation(): String {
-        return mCnTranslation
-    }
-
-    fun getImageResourceId(): Int {
-        return mImageId
-    }
-
-    fun getSoundResourceId(): Int {
-        return mSoundId
-    }
-
-    // 如果有图片，返回 true
-    fun hasImage(): Boolean {
-        return mImageId != NO_IMAGE_PROVIDED
-    }
-}
+data class Word(
+    val enTranslation: String,
+    val cnTranslation: String,
+    val imageId: Int? = null,
+    val soundId: Int
+)
