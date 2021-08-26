@@ -6,13 +6,22 @@ import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ListView
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.coco_hkk.translation.databinding.WordListBinding
 
-class ColorsActivity : AppCompatActivity() {
+/**
+ * A simple [Fragment] subclass.
+ * Use the [PhrasesFragment.newInstance] factory method to
+ * create an instance of this fragment.
+ */
+class PhrasesFragment : Fragment() {
     // 视图绑定
-    private lateinit var mBinding: WordListBinding
+    private var mBinding: WordListBinding? = null
+    private val binding get() = mBinding!!
 
     private var mMedia: MediaPlayer? = null
 
@@ -48,14 +57,16 @@ class ColorsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+    }
 
-        // 视图绑定
-        mBinding = WordListBinding.inflate(layoutInflater)
-        val view = mBinding.root
-        setContentView(view)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        mBinding = WordListBinding.inflate(inflater, container, false)
 
         // 0. 获取音频服务
-        mAudioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        mAudioManager = activity?.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         // 1. 定义 AudioFocus 属性
         val mPlaybackAttributes = AudioAttributes.Builder()
@@ -69,26 +80,21 @@ class ColorsActivity : AppCompatActivity() {
             .setOnAudioFocusChangeListener(afChangeListener)
             .build()
 
-        val colors: List<Word> =
-            listOf(
-                Word("red", "红", R.drawable.color_red, R.raw.color_red),
-                Word("green", "绿", R.drawable.color_green, R.raw.color_green),
-                Word("brown", "棕", R.drawable.color_brown, R.raw.color_brown),
-                Word("gray", "灰", R.drawable.color_gray, R.raw.color_gray),
-                Word("black", "黑", R.drawable.color_black, R.raw.color_black),
-                Word("white", "白", R.drawable.color_white, R.raw.color_white),
-                Word("orange", "橙", R.drawable.color_dusty_yellow, R.raw.color_orange),
-                Word("yellow", "黄", R.drawable.color_mustard_yellow, R.raw.color_yellow),
-            )
+        val phrase = listOf(
+            Word("Good Morning!", "早上好！", null, R.raw.phrase_morning),
+            Word("Did you have breakfast?", "吃了吗？", null, R.raw.phrase_eat),
+            Word("Where are you going?", "去哪？", null, R.raw.phrase_go),
+        )
 
-        val adapter = WordAdapter(this, colors, R.color.category_colors)
+        val adapter = WordAdapter(activity!!, phrase, R.color.category_phrases)
 
-        val listView: ListView = mBinding.list
+        val listView: ListView = binding.list
 
         listView.adapter = adapter
 
         listView.setOnItemClickListener { _, _, position, _ ->
-            val word: Word = colors[position]
+            val word: Word = phrase[position]
+
             releaseMediaPlayer()
 
             // 4. AudioManager 处理音频焦点
@@ -96,7 +102,7 @@ class ColorsActivity : AppCompatActivity() {
 
             // 5. 若请求成功则播放音频
             if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                mMedia = MediaPlayer.create(this, word.soundId)
+                mMedia = MediaPlayer.create(activity, word.soundId)
                 mMedia?.setAudioAttributes(mPlaybackAttributes)
                 mMedia?.start()
 
@@ -104,9 +110,10 @@ class ColorsActivity : AppCompatActivity() {
                 mMedia?.setOnCompletionListener(mCompletionListener)
             }
         }
+
+        return binding.root
     }
 
-    // 当 activity 在 onStop 状态时释放 media 资源
     override fun onStop() {
         super.onStop()
 
@@ -120,5 +127,18 @@ class ColorsActivity : AppCompatActivity() {
 
         // 6. 当失去音频焦点时调用
         mAudioManager.abandonAudioFocusRequest(mFocusRequest)
+    }
+
+    companion object {
+        /**
+         * Use this factory method to create a new instance of
+         * this fragment using the provided parameters.
+         *
+         * @return A new instance of fragment FamilyFragment.
+         */
+        // TODO: Rename and change types and number of parameters
+        @JvmStatic
+        fun newInstance() =
+            PhrasesFragment().apply {}
     }
 }

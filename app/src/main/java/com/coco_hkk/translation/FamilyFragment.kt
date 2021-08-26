@@ -2,20 +2,26 @@ package com.coco_hkk.translation
 
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ListView
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.coco_hkk.translation.databinding.WordListBinding
-import android.media.AudioFocusRequest
 
-
-
-
-class NumbersActivity : AppCompatActivity() {
+/**
+ * A simple [Fragment] subclass.
+ * Use the [FamilyFragment.newInstance] factory method to
+ * create an instance of this fragment.
+ */
+class FamilyFragment : Fragment() {
     // 视图绑定
-    private lateinit var mBinding: WordListBinding
+    private var mBinding: WordListBinding? = null
+    private val binding get() = mBinding!!
 
     private var mMedia: MediaPlayer? = null
 
@@ -44,20 +50,19 @@ class NumbersActivity : AppCompatActivity() {
                 AudioManager.AUDIOFOCUS_GAIN -> {
                     mMedia?.start()
                 }
-                else -> {}
+                else -> {
+                }
             }
         }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // 视图绑定
-        mBinding = WordListBinding.inflate(layoutInflater)
-        val view = mBinding.root
-        setContentView(view)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        mBinding = WordListBinding.inflate(inflater, container, false)
 
         // 0. 获取音频服务
-        mAudioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        mAudioManager = activity?.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         // 1. 定义 AudioFocus 属性
         val mPlaybackAttributes = AudioAttributes.Builder()
@@ -71,34 +76,48 @@ class NumbersActivity : AppCompatActivity() {
             .setOnAudioFocusChangeListener(afChangeListener)
             .build()
 
-        // 定义 numbers 列表，元素类型为 Word 类
-        val words: List<Word> =
-            listOf(
-                Word("one", "一", R.drawable.number_one, R.raw.number_one),
-                Word("two", "二", R.drawable.number_two, R.raw.number_two),
-                Word("three", "三", R.drawable.number_three, R.raw.number_three),
-                Word("four", "四", R.drawable.number_four, R.raw.number_four),
-                Word("five", "五", R.drawable.number_five, R.raw.number_five),
-                Word("six", "六", R.drawable.number_six, R.raw.number_six),
-                Word("seven", "七", R.drawable.number_seven, R.raw.number_seven),
-                Word("eight", "八", R.drawable.number_eight, R.raw.number_eight),
-                Word("nine", "九", R.drawable.number_nine, R.raw.number_nine),
-                Word("ten", "十", R.drawable.number_ten, R.raw.number_ten),
-            )
+        val family = listOf(
+            Word("father", "爹", R.drawable.family_father, R.raw.family_father),
+            Word("mother", "娘", R.drawable.family_mother, R.raw.family_mother),
+            Word("son", "儿子", R.drawable.family_son, R.raw.family_son),
+            Word("daughter", "女儿", R.drawable.family_daughter, R.raw.family_daughter),
+            Word(
+                "older brother",
+                "兄",
+                R.drawable.family_older_brother,
+                R.raw.family_older_brother
+            ),
+            Word(
+                "younger brother",
+                "弟",
+                R.drawable.family_younger_brother,
+                R.raw.family_younger_brother
+            ),
+            Word(
+                "older sister",
+                "姐",
+                R.drawable.family_older_sister,
+                R.raw.family_older_sister
+            ),
+            Word(
+                "younger sister",
+                "妹",
+                R.drawable.family_younger_sister,
+                R.raw.family_younger_sister
+            ),
+            Word("grandmother", "祖父", R.drawable.family_grandfather, R.raw.family_grandfather),
+            Word("grandfather", "祖母", R.drawable.family_grandmother, R.raw.family_grandmother),
+        )
 
-        /* for (x in words.indices) {
-             Log.v("NumbersActivity", "Word at index $x: ${words[x]}")
-         }*/
+        val adapter = WordAdapter(activity!!, family, R.color.category_family)
 
-        // 创建 AdapterView
-        val adapter = WordAdapter(this, words, R.color.category_numbers)
-
-        val listView: ListView = mBinding.list
+        val listView: ListView = binding.list
 
         listView.adapter = adapter
 
         listView.setOnItemClickListener { _, _, position, _ ->
-            val word: Word = words[position]
+            val word: Word = family[position]
+
             releaseMediaPlayer()
 
             // 4. AudioManager 处理音频焦点
@@ -106,7 +125,7 @@ class NumbersActivity : AppCompatActivity() {
 
             // 5. 若请求成功则播放音频
             if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                mMedia = MediaPlayer.create(this, word.soundId)
+                mMedia = MediaPlayer.create(activity, word.soundId)
                 mMedia?.setAudioAttributes(mPlaybackAttributes)
                 mMedia?.start()
 
@@ -114,9 +133,10 @@ class NumbersActivity : AppCompatActivity() {
                 mMedia?.setOnCompletionListener(mCompletionListener)
             }
         }
+
+        return binding.root
     }
 
-    // 当 activity 在 onStop 状态时释放 media 资源
     override fun onStop() {
         super.onStop()
 
@@ -130,5 +150,18 @@ class NumbersActivity : AppCompatActivity() {
 
         // 6. 当失去音频焦点时调用
         mAudioManager.abandonAudioFocusRequest(mFocusRequest)
+    }
+
+    companion object {
+        /**
+         * Use this factory method to create a new instance of
+         * this fragment using the provided parameters.
+         *
+         * @return A new instance of fragment FamilyFragment.
+         */
+        // TODO: Rename and change types and number of parameters
+        @JvmStatic
+        fun newInstance() =
+            FamilyFragment().apply {}
     }
 }
